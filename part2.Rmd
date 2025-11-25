@@ -1,0 +1,257 @@
+---
+title: "Economic Mobility Analysis Part 2"
+author: "Lewis Tu"
+date: "2025-05-02"
+output: github_document
+---
+
+```{r, include = FALSE}
+### Set up
+rm(list = ls()) # optional, removes all objects from the environment
+cat('\014') # optional, clears the console
+options(scipen = 999) # optional, ensures numbers aren't reported in scientific notation 
+```
+
+```{r, include = FALSE}
+# Install packages (if necessary) and load required libraries
+# By setting include = FALSE, we exclude output from this chunk 
+# in our final report, since it's not important.
+if (!require(tidyverse)) install.packages("tidyverse"); library(tidyverse)
+if (!require(haven)) install.packages("haven"); library(haven)
+if (!require(ggplot2)) install.packages("ggplot2"); library(ggplot2)
+if (!require(statar)) install.packages("statar"); library(statar)
+if (!require(sandwich)) install.packages("sandwich"); library(sandwich)
+if (!require(lmtest)) install.packages("lmtest"); library(lmtest)
+
+# Load Opportunity Insights plot theme
+library(oiplot)
+
+#Visit this Github page for more info: https://github.com/OpportunityInsights/oiplot
+```
+
+- Read data
+```{r}
+atlas <- read_dta("atlas.dta")
+
+# middlesex county filter
+midd <- atlas %>% filter(state==25, county==017)
+```
+
+- Comparing Absolute Upward Mobility
+```{r}
+# 2010 FIPS codes
+belmont_tracts <- c(357100, 357200, 357300, 357400, 357500, 357600, 357700, 357800)
+home_state <- 25 #MA
+home_county <- 017 #Middlesex
+
+# Belmont tracts
+belmont_data <- subset(atlas,
+  state  == home_state &
+  county == home_county &
+  tract  %in% belmont_tracts
+)
+belmont_mean <- mean(belmont_data$kfr_pooled_pooled_p25, na.rm = TRUE)
+
+# My county
+my_county <- subset(atlas, state == home_state & county == home_county)
+county_mean <- mean(my_county$kfr_pooled_pooled_p25, na.rm = TRUE)
+
+# My state
+my_state <- subset(atlas, state == home_state)
+state_mean <- mean(my_state$kfr_pooled_pooled_p25, na.rm = TRUE)
+
+# United States
+us_mean <- mean(atlas$kfr_pooled_pooled_p25, na.rm = TRUE)
+
+# Compare
+compare_df <- data.frame(
+  Region = c("Belmont", "Middlesex County", "MA", "US"),
+  Mean_Upward_Mobility = c(belmont_mean, county_mean, state_mean, us_mean)
+)
+
+compare_df
+```
+
+- Grade 3 Math Scores vs Absolute Upward Mobility
+```{r}
+# Draw binned scatter plot with linear best fit line
+ggplot(midd, aes(x = gsmn_math_g3_2013, y = kfr_pooled_pooled_p25)) +
+  stat_binmean(n = 30, geom = "point") +
+  stat_smooth(method = "lm", se = FALSE) +
+  coord_cartesian(xlim = c(3, 6.5), ylim = c(42, 60)) +
+  labs(x = "G3 Math Test Scores in 2013",
+    y = "Absolute Upward Mobility",
+    title = "Upward Mobility vs. School Quality") +
+  oi_style()
+
+# Regression
+lm_kfr_math <- lm(kfr_pooled_pooled_p25 ~ gsmn_math_g3_2013, data = midd)
+
+# Report coefficients and standard errors
+coeftest(lm_kfr_math, vcov = vcovHC(lm_kfr_math, type="HC1"))
+```
+
+- Fraction with BA or higher vs Absolute Upward Mobility
+```{r}
+# Binned scatter plot with linear best fit line
+ggplot(midd, aes(x = frac_coll_plus2010, y = kfr_pooled_pooled_p25)) +
+  stat_binmean(n = 30, geom = "point") +
+  stat_smooth(method = "lm", se = FALSE) +
+  coord_cartesian(xlim = c(0, 1), ylim = c(42, 56)) +
+  labs(x = "Fraction with BA or higher in 2010",
+    y = "Absolute Upward Mobility",
+    title = "Upward Mobility vs. Educational Attainment") +
+  oi_style()
+
+# Regression
+lm_kfr_coll <- lm(kfr_pooled_pooled_p25 ~ frac_coll_plus2010, data = midd)
+
+# Report coefficients and standard errors
+coeftest(lm_kfr_coll, vcov = vcovHC(lm_kfr_coll, type="HC1"))
+```
+
+- Median Household Income vs Absolute Upward Mobility
+```{r}
+# Binned scatter plot with linear best fit line
+ggplot(midd, aes(x = med_hhinc1990, y = kfr_pooled_pooled_p25)) +
+  stat_binmean(n = 30, geom = "point") +
+  stat_smooth(method = "lm", se = FALSE) +
+  coord_cartesian(xlim = c(15000, 95000), ylim = c(42, 60)) +
+  labs(x = "Median Household Income in 1990",
+    y = "Absolute Upward Mobility",
+    title = "Upward Mobility vs. Median Household Income") +
+  oi_style()
+```
+
+- Log Median Household Income vs Absolute Upward Mobility
+```{r}
+# Binned scatter plot with linear best fit line
+ggplot(midd, aes(x = log(med_hhinc1990), y = kfr_pooled_pooled_p25)) +
+  stat_binmean(n = 30, geom = "point") +
+  stat_smooth(method = "lm", se = FALSE) +
+  coord_cartesian(xlim = c(9.5, 11.5), ylim = c(42, 58)) +
+  labs(x = "Median Household Income in 1990 (log)",
+    y = "Absolute Upward Mobility",
+    title = "Upward Mobility vs. Median Household Income") +
+  oi_style()
+
+# Regression
+lm_kfr_inc <- lm(kfr_pooled_pooled_p25 ~ log(med_hhinc1990), data = midd)
+
+# Report coefficients and standard errors
+coeftest(lm_kfr_inc, vcov = vcovHC(lm_kfr_inc, type="HC1"))
+```
+
+- Multivariate regressions
+$$
+\text{UpwardMobility}_i \;=\; \beta_0 
+  \;+\;\beta_1\,\text{Grade3MathScore}_i
+  \;+\;\beta_2\,\%\text{CollegeGrads}_i
+  \;+\;\beta_3\,\log(\text{MedianIncome}_i)
+  \;+\;\varepsilon_i
+$$
+```{r}
+# Multivariate regression on three predictors above
+multi_kfr <- lm(kfr_pooled_pooled_p25 ~ gsmn_math_g3_2013 + frac_coll_plus2010 + log(med_hhinc1990), data = midd)
+
+# Coefficient test
+coeftest(multi_kfr, vcov = vcovHC(multi_kfr, type="HC1"))
+
+# Multivariate regression on many factors
+m_control <- lm(
+  kfr_pooled_pooled_p25 ~ gsmn_math_g3_2013
+    + log(med_hhinc1990)
+    + frac_coll_plus2010
+    + singleparent_share2010
+    + share_white2010 + share_black2010 + share_hisp2010 + share_asian2010
+    + homeownership2010
+    + job_density_2013 + popdensity2010
+    + share_urban2010,
+  data = midd
+)
+
+# Coefficient test
+coeftest(m_control, vcov = vcovHC(m_control, type="HC1"))
+```
+- Reasoning by conditioning
+```{r}
+# Filter to bottom quintile
+low_inc <- midd %>% filter(med_hhinc1990 < quantile(med_hhinc1990, .2))
+lm_low_kfr_math <- lm(kfr_pooled_pooled_p25 ~ gsmn_math_g3_2013, data = low_inc)
+coeftest(lm_low_kfr_math, vcov = vcovHC(lm_low_kfr_math, type="HC1"))
+
+# Filter to upper quintile
+high_inc <- midd %>% filter(med_hhinc1990 > quantile(med_hhinc1990, .2))
+lm_high_kfr_math <- lm(kfr_pooled_pooled_p25 ~ gsmn_math_g3_2013, data = high_inc)
+coeftest(lm_high_kfr_math, vcov = vcovHC(lm_high_kfr_math, type="HC1"))
+
+# Filter to bottom half
+low_inc <- midd %>% filter(med_hhinc1990 < quantile(med_hhinc1990, .4))
+lm_low_kfr_math <- lm(kfr_pooled_pooled_p25 ~ gsmn_math_g3_2013, data = low_inc)
+coeftest(lm_low_kfr_math, vcov = vcovHC(lm_low_kfr_math, type="HC1"))
+
+# Filter to upper half
+high_inc <- midd %>% filter(med_hhinc1990 > quantile(med_hhinc1990, .6))
+lm_high_kfr_math <- lm(kfr_pooled_pooled_p25 ~ gsmn_math_g3_2013, data = high_inc)
+coeftest(lm_high_kfr_math, vcov = vcovHC(lm_high_kfr_math, type="HC1"))
+```
+
+- Lockbox validation
+```{r}
+library(dplyr)
+
+# 1. Read & filter lockbox as you already have
+lbox      <- read_dta("lockbox_atlas.dta")
+lbox_midd <- lbox %>% 
+  filter(state==25, county==017) %>%
+  transmute(
+    state, county, tract,
+    kfr25_8489 = lockbox_kfr_pooled_pooled_p25
+  )
+
+# 2. Merge onto your original midd
+df_lock <- midd %>% 
+  left_join(
+    lbox_midd,
+    by = c("state","county","tract")
+  )
+
+# SECTION: Upward Mobility vs G3 Math Scores
+# Draw binned scatter plot with linear best fit line
+ggplot(df_lock, aes(x = gsmn_math_g3_2013, y = kfr25_8489)) +
+  stat_binmean(n = 30, geom = "point") +
+  stat_smooth(method = "lm", se = FALSE) +
+  coord_cartesian(xlim = c(3, 6.5), ylim = c(42, 55)) +
+  labs(x = "G3 Math Test Scores in 2013",
+    y = "Absolute Upward Mobility",
+    title = "Upward Mobility vs. School Quality") +
+  oi_style()
+
+# Regression
+lock_kfr_math <- lm(kfr25_8489 ~ gsmn_math_g3_2013, data = df_lock)
+
+# Report coefficients and standard errors
+coeftest(lock_kfr_math, vcov = vcovHC(lock_kfr_math, type="HC1"))
+
+# Multivariate regression on three predictors 
+lock_multi_kfr <- lm(kfr25_8489  ~ gsmn_math_g3_2013 + frac_coll_plus2010 + log(med_hhinc1990), data = df_lock)
+
+# Coefficient test
+coeftest(lock_multi_kfr, vcov = vcovHC(lock_multi_kfr, type="HC1"))
+
+# Multivariate regression on many factors
+lock_m_control <- lm(
+  kfr25_8489  ~ gsmn_math_g3_2013
+    + log(med_hhinc1990)
+    + frac_coll_plus2010
+    + singleparent_share2010
+    + share_white2010 + share_black2010 + share_hisp2010 + share_asian2010
+    + homeownership2010
+    + job_density_2013 + popdensity2010
+    + share_urban2010,
+  data = df_lock
+)
+
+# Coefficient test
+coeftest(lock_m_control, vcov = vcovHC(lock_m_control, type="HC1"))
+```
