@@ -31,7 +31,7 @@ library(oiplot)
 
 - Read data
 ```{r}
-atlas <- read_dta("atlas.dta")
+atlas <- read_dta("../data/atlas.dta")
 
 # middlesex county filter
 midd <- atlas %>% filter(state==25, county==017)
@@ -201,7 +201,7 @@ coeftest(lm_high_kfr_math, vcov = vcovHC(lm_high_kfr_math, type="HC1"))
 library(dplyr)
 
 # 1. Read & filter lockbox as you already have
-lbox      <- read_dta("lockbox_atlas.dta")
+lbox      <- read_dta("../data/lockbox_atlas.dta")
 lbox_midd <- lbox %>% 
   filter(state==25, county==017) %>%
   transmute(

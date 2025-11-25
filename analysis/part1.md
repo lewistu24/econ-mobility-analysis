@@ -14,7 +14,7 @@ Lewis Tu
 
 <div class="figure" style="text-align: center">
 
-<img src="belmont_all.png" alt="Upward Mobility at p25 for Belmont, MA Pooling All Races and Genders" width="50%" />
+<img src="../figures/belmont_all.png" alt="Upward Mobility at p25 for Belmont, MA Pooling All Races and Genders" width="50%" />
 <p class="caption">
 
 Upward Mobility at p25 for Belmont, MA Pooling All Races and Genders
@@ -24,7 +24,7 @@ Upward Mobility at p25 for Belmont, MA Pooling All Races and Genders
 
 <div class="figure" style="text-align: center">
 
-<img src="middlesex_all.png" alt="Mobility Trends at p25 for Middlesex County, MA Pooling All Races and Genders" width="50%" />
+<img src="../figures/middlesex_all.png" alt="Mobility Trends at p25 for Middlesex County, MA Pooling All Races and Genders" width="50%" />
 <p class="caption">
 
 Mobility Trends at p25 for Middlesex County, MA Pooling All Races and
@@ -40,7 +40,7 @@ mobility has decreased over time.
 
 <div class="figure" style="text-align: center">
 
-<img src="belmont_social.png" alt="Economic Connectedness for Zip Code 02478" width="50%" />
+<img src="../figures/belmont_social.png" alt="Economic Connectedness for Zip Code 02478" width="50%" />
 <p class="caption">
 
 Economic Connectedness for Zip Code 02478
