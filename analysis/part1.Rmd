@@ -39,20 +39,20 @@ library(oiplot)
 
 ```{r, echo=FALSE, fig.align = "center", out.width="50%", fig.cap="Upward Mobility at p25 for Belmont, MA Pooling All Races and Genders"}
 
-knitr::include_graphics("belmont_all.png")
+knitr::include_graphics("../figures/belmont_all.png")
 ```
 \newpage
 
 ```{r, echo=FALSE, fig.align = "center", out.width="50%", fig.cap="Mobility Trends at p25 for Middlesex County, MA Pooling All Races and Genders"}
 
-knitr::include_graphics("middlesex_all.png")
+knitr::include_graphics("../figures/middlesex_all.png")
 ```
 Among children of all races and genders born in 25th percentile parent income households in Middlesex County, there was a 4.2% decrease in household income between 1978 and 1992 cohorts, indicating that upward mobility has decreased over time. 
 \newpage
 
 ```{r, echo=FALSE, fig.align = "center", out.width="50%", fig.cap="Economic Connectedness for Zip Code 02478"}
 
-knitr::include_graphics("belmont_social.png")
+knitr::include_graphics("../figures/belmont_social.png")
 ```
 ZIP 02478 (Belmont, MA) ranks at the 100th percentile in terms of economic connectedness, with 73.1% of friends of low-income people having high incomes. It exhibits relatively low cohesiveness, with 9.5% (32nd percentile) of friends also being friends with each other. On the other hand, civic engagement is strong, with volunteering rates at 10.6% (83rd percentile).
 
@@ -63,7 +63,7 @@ ZIP 02478 (Belmont, MA) ranks at the 100th percentile in terms of economic conne
 # in our final report, since it's not important.
 
 ##Read in data
-atlas<- read_dta("atlas.dta")
+atlas<- read_dta("../data/atlas.dta")
 
 # Calculate summary statistics including % missing
 vars <- c("kfr_pooled_pooled_p25", 
@@ -288,7 +288,7 @@ One hypothesis is that in affluent neighborhoods, there exist more opportunities
 connects each Census tract with one or more zip codes.
 
 ```{r}
-xwalk <- read_dta("zip_tracts_xwalk.dta")
+xwalk <- read_dta("../data/zip_tracts_xwalk.dta")
 
 newdf <- left_join(
   atlas,
@@ -309,7 +309,7 @@ atlas_zip <- newdf %>%
 
 8. c. Merging the collapsed mobility data set with the social capital data **social_capital_zip.dta.**
 ```{r}
-social_cap <- read_dta("social_capital_zip.dta")
+social_cap <- read_dta("../data/social_capital_zip.dta")
 
 atlas_zip_sc <- left_join(
   atlas_zip,
